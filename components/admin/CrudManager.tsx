@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabaseClient';
 
 export interface FieldConfig {
   key: string;
@@ -20,6 +20,7 @@ export default function CrudManager({
   fields: FieldConfig[];
   defaultValues: Record<string, any>;
 }) {
+  const supabase = createClient();
   const [rows, setRows] = useState<any[]>([]);
   const [form, setForm] = useState<Record<string, any>>(defaultValues);
   const [loading, setLoading] = useState(true);

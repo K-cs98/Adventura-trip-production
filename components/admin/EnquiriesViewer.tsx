@@ -1,14 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabaseClient'; // 1. Corrected import
 import type { Enquiry } from '@/types';
 
 export default function EnquiriesViewer() {
+  const supabase = createClient(); // 2. Initialized supabase instance
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   async function load() {
+    setLoading(true);
     const { data } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
     setEnquiries(data ?? []);
     setLoading(false);
@@ -21,9 +23,7 @@ export default function EnquiriesViewer() {
   async function sendReply(id: string) {
     const reply = replyDrafts[id];
     if (!reply?.trim()) return;
-    // Note: this stores the reply in the database. To actually email the
-    // customer, connect a transactional email provider (Resend, Postmark,
-    // SendGrid) in a server action or API route triggered here.
+    
     await supabase.from('enquiries').update({ status: 'replied', reply_message: reply }).eq('id', id);
     load();
   }

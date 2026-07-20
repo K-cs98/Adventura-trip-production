@@ -1,13 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabaseClient'; // 1. Import the function
 import type { Booking } from '@/types';
 
 export default function BookingsViewer() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
+    const supabase = createClient(); // 2. Add this line so 'supabase' is defined
+    
     supabase
       .from('bookings')
       .select('*')

@@ -1,13 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabaseClient'; // 1. Changed import
 import type { QuoteRequest } from '@/types';
 
 export default function QuoteRequestsViewer() {
+  const supabase = createClient(); // 2. Added initialization
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function load() {
+    setLoading(true); // Added loading state toggle for better UX
     const { data } = await supabase.from('quote_requests').select('*').order('created_at', { ascending: false });
     setQuotes(data ?? []);
     setLoading(false);
