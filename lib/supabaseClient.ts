@@ -1,12 +1,18 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Create a single shared client instance to prevent multiple GoTrueClient warnings
+let client: ReturnType<typeof createBrowserClient> | null = null;
 
-// 1. Export the function for components
-export function createClient() {
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey);
-}
+export const createClient = () => {
+  if (client) return client;
 
-// 2. Export a direct 'supabase' instance so legacy imports don't throw errors
-export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+  client = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  return client;
+};
+
+// Or if your app expects a direct export named supabase:
+export const supabase = createClient();

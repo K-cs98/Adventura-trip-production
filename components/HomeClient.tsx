@@ -76,7 +76,7 @@ export default function HomeClient({
         onToggleWishlist={toggleWishlist}
         onBook={(tour) => setBookingTour(tour)}
       />
-      <CuratorTool onSubmitted={setToast} />
+      <CuratorTool currency={currency} onSubmitted={setToast} />
       <FlightsAndHotels flights={flights} hotels={hotels} currency={currency} rates={rates} />
       <MediaGallerySection items={mediaGallery} />
       <ReviewsSection reviews={reviews} />

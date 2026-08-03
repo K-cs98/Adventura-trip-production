@@ -1,11 +1,26 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import type { CurrencyCode } from '@/types';
 
 const TRANSPORT_OPTIONS = ['Economy Flight', 'Business Flight', 'Private Charter', 'Road Transfer'];
 const TIER_OPTIONS = ['Standard', 'Premium', 'Luxury', 'Ultra-Luxury'];
 
-export default function CuratorTool({ onSubmitted }: { onSubmitted: (msg: string) => void }) {
+// Exchange rate mapping & symbol helper
+const CURRENCY_CONFIG: Record<CurrencyCode, { rate: number; symbol: string }> = {
+  USD: { rate: 1, symbol: '$' },
+  NGN: { rate: 1500, symbol: '₦' },
+  GHS: { rate: 15, symbol: 'GH₵' },
+  XOF: { rate: 600, symbol: 'CFA' },
+};
+
+export default function CuratorTool({ 
+  currency = 'USD',
+  onSubmitted 
+}: { 
+  currency?: CurrencyCode;
+  onSubmitted: (msg: string) => void;
+}) {
   const [destination, setDestination] = useState('');
   const [transportMode, setTransportMode] = useState(TRANSPORT_OPTIONS[0]);
   const [tier, setTier] = useState(TIER_OPTIONS[0]);
@@ -15,6 +30,15 @@ export default function CuratorTool({ onSubmitted }: { onSubmitted: (msg: string
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Active currency formatting details
+  const currentCurrencyInfo = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.USD;
+
+  // Helper to convert USD base value to current active currency
+  const formatMoney = (amountInUSD: number) => {
+    const converted = Math.round(amountInUSD * currentCurrencyInfo.rate);
+    return `${currentCurrencyInfo.symbol}${converted.toLocaleString()}`;
+  };
 
   // Rough live estimate for display only — the real quote comes from the team.
   const tierMultiplier = { Standard: 1, Premium: 1.4, Luxury: 2, 'Ultra-Luxury': 3 }[tier] ?? 1;
@@ -110,14 +134,16 @@ export default function CuratorTool({ onSubmitted }: { onSubmitted: (msg: string
             <input type="range" min={1} max={30} value={days} onChange={(e) => setDays(+e.target.value)} className="mt-3 w-full" />
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs font-semibold text-slate-600">Target budget: ${budget.toLocaleString()}</label>
+            <label className="text-xs font-semibold text-slate-600">
+              Target budget: {formatMoney(budget)}
+            </label>
             <input type="range" min={500} max={50000} step={500} value={budget} onChange={(e) => setBudget(+e.target.value)} className="mt-3 w-full" />
           </div>
 
           <div className="md:col-span-2 flex items-center justify-between bg-slate-50 rounded-xl p-4">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-slate-400">Live rough estimate</p>
-              <p className="font-bold text-xl text-slate-900">${estimate.toLocaleString()}</p>
+              <p className="font-bold text-xl text-slate-900">{formatMoney(estimate)}</p>
             </div>
             <p className="text-[11px] text-slate-400 max-w-[220px] text-right">
               A curator will confirm the final quote by email — this is a starting estimate, not a price lock.
