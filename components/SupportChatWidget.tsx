@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabaseClient';
 
 export default function SupportChatWidget({ onSubmitted }: { onSubmitted: (msg: string) => void }) {
+  const supabase = createClient(); // Initialized supabase client instance
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

@@ -2,29 +2,26 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}'
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        brand: {
-          blue: '#1E88E5',
-          teal: '#26A69A'
-        }
+        luxury: {
+          gold: '#C5A880',
+          dark: '#0B132B',
+          charcoal: '#1C2541',
+        },
       },
-      animation: {
-        fadeIn: 'fadeIn 0.2s ease-out'
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' }
-        }
-      }
-    }
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;
