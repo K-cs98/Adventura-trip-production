@@ -4,10 +4,6 @@ import { createAdminSupabase } from '@/lib/supabaseServer';
 
 // POST /api/checkout
 // body: { tourId, tourTitle, priceUsd, customerName, customerEmail, notes? }
-// Creates a pending booking row, then a Stripe Checkout session, and
-// returns the session URL for redirect. The booking is marked "paid" by
-// the webhook (app/api/stripe-webhook) once Stripe confirms payment —
-// never trust the client-side redirect alone to mark something paid.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
