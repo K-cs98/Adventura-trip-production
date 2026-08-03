@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import type { CurrencyCode } from '@/types';
 
 const TRANSPORT_OPTIONS = ['Economy Flight', 'Business Flight', 'Private Charter', 'Road Transfer'];
@@ -55,26 +54,40 @@ export default function CuratorTool({
     }
 
     setSubmitting(true);
-    const { error: dbError } = await supabase.from('quote_requests').insert({
-      destination,
-      transport_mode: transportMode,
-      accommodation_tier: tier,
-      headcount,
-      timeframe_days: days,
-      target_budget_usd: budget,
-      estimated_cost_usd: estimate,
-      customer_email: email
-    });
-    setSubmitting(false);
 
-    if (dbError) {
-      setError('Could not submit your request — please try again.');
-      return;
+    try {
+      // Call our API route which handles DB insertion & Resend email notifications
+      const response = await fetch('/api/send-quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer_email: email,
+          destination,
+          transport_mode: transportMode,
+          accommodation_tier: tier,
+          headcount,
+          timeframe_days: days,
+          target_budget_usd: budget,
+          estimated_cost_usd: estimate,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not submit your request');
+      }
+
+      onSubmitted('Request received — our travel curators will email you within 24 hours.');
+      setDestination('');
+      setEmail('');
+    } catch (err: any) {
+      setError(err.message || 'Could not submit your request — please try again.');
+    } finally {
+      setSubmitting(false);
     }
-
-    onSubmitted('Request received — our travel curators will email you within 24 hours.');
-    setDestination('');
-    setEmail('');
   }
 
   return (
