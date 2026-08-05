@@ -14,8 +14,8 @@ export async function POST(request: Request) {
 
     // Send email to the admin/team
     const adminEmailRes = await resend.emails.send({
-      from: 'Adventura Trips <onboarding@resend.dev>', // Update with your verified domain in production
-      to: ['your-email@example.com'], // Replace with your receiving admin email
+      from: 'onboarding@resend.dev',
+      to: ['agbamaknorkoroh@gmail.com'],
       subject: `New Custom Quote Request: ${destination} (${headcount} travelers)`,
       html: `
         <h2>New Trip Custom Quote Request</h2>
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     // Send confirmation email to the client
     const clientEmailRes = await resend.emails.send({
-      from: 'Adventura Trips <onboarding@resend.dev>',
+      from: 'onboarding@resend.dev',
       to: [customer_email],
       subject: `We've received your custom quote request for ${destination}!`,
       html: `

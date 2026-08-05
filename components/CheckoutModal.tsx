@@ -1,49 +1,34 @@
 'use client';
-import { useState } from 'react';
-import type { Tour } from '@/types';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import type { Tour, CurrencyCode } from '@/types';
 
-export default function CheckoutModal({ tour, onClose }: { tour: Tour; onClose: () => void }) {
+const PaystackButtonWrapper = dynamic(
+  () => import('@/components/PaystackButtonWrapper'),
+  { ssr: false }
+);
+
+export default function CheckoutModal({
+  tour,
+  currency = 'NGN', // Default or passed from parent state
+  rates = { USD: 1, NGN: 1500, GHS: 15, XOF: 600 },
+  onClose
+}: {
+  tour: Tour;
+  currency?: CurrencyCode;
+  rates?: Record<CurrencyCode, number>;
+  onClose: () => void;
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    if (!name.trim() || !email.trim()) {
-      setError('Please provide your name and email.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tourId: tour.id,
-          tourTitle: tour.title,
-          priceUsd: tour.price_usd,
-          customerName: name,
-          customerEmail: email
-        })
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        setError(data.error ?? 'Something went wrong starting checkout.');
-        setLoading(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch {
-      setError('Network error — please try again.');
-      setLoading(false);
-    }
-  }
+  const currentRate = rates[currency] ?? 1500;
+  const convertedPrice = Math.round(tour.price_usd * currentRate);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
@@ -60,13 +45,13 @@ export default function CheckoutModal({ tour, onClose }: { tour: Tour; onClose: 
         <h3 className="mt-1 font-bold text-lg text-slate-900">{tour.title}</h3>
         <p className="text-sm text-slate-500 mt-1">{tour.location} · {tour.duration}</p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4">
           <div>
             <label className="text-xs font-semibold text-slate-600">Full name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E88E5]"
+              className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#09a5db]"
               placeholder="Jane Doe"
             />
           </div>
@@ -76,24 +61,26 @@ export default function CheckoutModal({ tour, onClose }: { tour: Tour; onClose: 
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E88E5]"
+              className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#09a5db]"
               placeholder="jane@example.com"
             />
           </div>
 
-          {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+          {mounted && (
+            <PaystackButtonWrapper
+              tour={tour}
+              name={name}
+              email={email}
+              currency={currency}
+              convertedPrice={convertedPrice}
+              onClose={onClose}
+            />
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#1E88E5] hover:bg-[#1976D2] disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
-          >
-            {loading ? 'Redirecting to secure checkout…' : `Pay $${tour.price_usd.toLocaleString()} with Stripe`}
-          </button>
           <p className="text-[11px] text-slate-400 text-center">
-            You'll be redirected to Stripe's secure checkout page to complete payment.
+            Secure payment processed via Paystack ({currency}).
           </p>
-        </form>
+        </div>
       </div>
     </div>
   );
