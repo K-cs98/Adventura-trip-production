@@ -6,11 +6,32 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { customer_email, destination, headcount, timeframe_days, target_budget_usd, estimated_cost_usd, transport_mode, accommodation_tier } = body;
+    const { 
+      customer_email, 
+      destination, 
+      headcount, 
+      timeframe_days, 
+      target_budget, 
+      estimated_cost, 
+      currency = 'USD',
+      transport_mode, 
+      accommodation_tier 
+    } = body;
 
     if (!customer_email) {
       return NextResponse.json({ error: 'Customer email is required' }, { status: 400 });
     }
+
+    const SYMBOLS: Record<string, string> = {
+      USD: '$',
+      NGN: '₦',
+      GHS: 'GH₵',
+      XOF: 'CFA',
+    };
+
+    const currencySymbol = SYMBOLS[currency] || '$';
+    const formattedBudget = typeof target_budget === 'number' ? target_budget.toLocaleString() : target_budget;
+    const formattedEstimate = typeof estimated_cost === 'number' ? estimated_cost.toLocaleString() : estimated_cost;
 
     // Send email to the admin/team
     const adminEmailRes = await resend.emails.send({
@@ -25,8 +46,8 @@ export async function POST(request: Request) {
         <p><strong>Duration:</strong> ${timeframe_days} days</p>
         <p><strong>Transport Mode:</strong> ${transport_mode}</p>
         <p><strong>Accommodation Tier:</strong> ${accommodation_tier}</p>
-        <p><strong>Target Budget:</strong> $${target_budget_usd?.toLocaleString()}</p>
-        <p><strong>Estimated Cost:</strong> $${estimated_cost_usd?.toLocaleString()}</p>
+        <p><strong>Target Budget:</strong> ${currencySymbol}${formattedBudget}</p>
+        <p><strong>Estimated Cost:</strong> ${currencySymbol}${formattedEstimate}</p>
       `,
     });
 
@@ -38,7 +59,7 @@ export async function POST(request: Request) {
       html: `
         <h2>Thank you for planning with Adventura Trips!</h2>
         <p>We have received your request for a ${timeframe_days}-day trip to ${destination} for ${headcount} traveler(s).</p>
-        <p>Our travel curators are reviewing your preferences and target budget ($${target_budget_usd?.toLocaleString()}). We will contact you shortly with a finalized itinerary and quote by email.</p>
+        <p>Our travel curators are reviewing your preferences and target budget (${currencySymbol}${formattedBudget}). We will contact you shortly with a finalized itinerary and quote by email.</p>
         <br/>
         <p>Warm regards,</p>
         <p><strong>The Adventura Trips Team</strong></p>

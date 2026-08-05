@@ -56,14 +56,14 @@ export default function CuratorTool({
     setSubmitting(true);
 
     try {
-      // Convert active currency values back to USD for the backend database & API consistency
-      const budgetInUSD = Math.round(budget / currentCurrencyInfo.rate);
-      const estimateInUSD = Math.round(estimate / currentCurrencyInfo.rate);
+      // Calculate local values based on the active currency selection
+      const localizedBudget = Math.round(budget * currentCurrencyInfo.rate);
+      const localizedEstimate = Math.round(estimate * currentCurrencyInfo.rate);
 
       const response = await fetch('/api/send-quote', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Content-Type: 'application/json',
         },
         body: JSON.stringify({
           customer_email: email,
@@ -72,8 +72,9 @@ export default function CuratorTool({
           accommodation_tier: tier,
           headcount,
           timeframe_days: days,
-          target_budget_usd: budgetInUSD,
-          estimated_cost_usd: estimateInUSD,
+          target_budget: localizedBudget,
+          estimated_cost: localizedEstimate,
+          currency: currency,
         }),
       });
 
