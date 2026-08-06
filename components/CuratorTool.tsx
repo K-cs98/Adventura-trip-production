@@ -63,7 +63,7 @@ export default function CuratorTool({
       const response = await fetch('/api/send-quote', {
         method: 'POST',
         headers: {
-          Content-Type: 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           customer_email: email,
